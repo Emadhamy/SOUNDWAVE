@@ -1,0 +1,26 @@
+version: 2
+updates:
+  # تحديث مكتبات Gradle
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "gradle"
+    commit-message:
+      prefix: "⬆️ deps:"
+    
+  # تحديث GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "saturday"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "⬆️ actions:"
