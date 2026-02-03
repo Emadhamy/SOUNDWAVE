@@ -17,7 +17,7 @@ palette = "1.0.0"
 ksp = "2.0.0-1.0.22"
 serialization = "1.6.3"
 workManager = "2.9.0"
-accompanist = "0.34.0"
+accompanist = "0.36.0"
 
 [libraries]
 # Core
