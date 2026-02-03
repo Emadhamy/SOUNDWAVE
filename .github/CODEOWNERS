@@ -1,0 +1,6 @@
+# Default owners
+* @your-username
+
+# Android specific
+*.kt @your-username
+*.gradle* @your-username
