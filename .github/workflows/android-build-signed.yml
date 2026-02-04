@@ -60,6 +60,7 @@ jobs:
       - name: 🔨 Build Debug APK (Signed)
         run: |
           ./gradlew assembleDebug \
+            --no-configuration-cache \
             -PSOUNDWAVE_KEYSTORE_PATH=app/keystore/temp_keystore.jks \
             -PSOUNDWAVE_KEYSTORE_PASSWORD=temp123456 \
             -PSOUNDWAVE_KEY_ALIAS=soundwave_temp \
@@ -70,6 +71,7 @@ jobs:
       - name: 📦 Build Release APK (Signed)
         run: |
           ./gradlew assembleRelease \
+            --no-configuration-cache \
             -PSOUNDWAVE_KEYSTORE_PATH=app/keystore/temp_keystore.jks \
             -PSOUNDWAVE_KEYSTORE_PASSWORD=temp123456 \
             -PSOUNDWAVE_KEY_ALIAS=soundwave_temp \
