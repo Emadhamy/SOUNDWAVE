@@ -67,3 +67,4 @@ gradle-app.setting
 # Secrets
 secrets.properties
 google-services.json
+.env
