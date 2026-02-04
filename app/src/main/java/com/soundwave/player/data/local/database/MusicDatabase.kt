@@ -19,9 +19,9 @@ import com.soundwave.player.data.local.database.entities.*
         LyricsEntity::class
     ],
     version = 1,
-    exportSchema = true
+    version = 1,
+    exportSchema = false
 )
-@TypeConverters(Converters::class)
 abstract class MusicDatabase : RoomDatabase() {
     
     abstract fun songDao(): SongDao
@@ -32,8 +32,4 @@ abstract class MusicDatabase : RoomDatabase() {
     companion object {
         const val DATABASE_NAME = "soundwave_database"
     }
-}
-
-class Converters {
-    // يمكن إضافة محولات هنا إذا لزم الأمر
 }
