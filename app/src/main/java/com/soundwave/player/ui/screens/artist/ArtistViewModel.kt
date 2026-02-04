@@ -36,19 +36,26 @@ class ArtistViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             
             try {
-                combine(
-                    musicRepository.getArtistById(artistId),
-                    musicRepository.getSongsByArtist(artistId)
-                ) { artist, songs ->
-                    ArtistUiState(
-                        isLoading = false,
-                        artist = artist,
-                        albums = artist?.albums ?: emptyList(),
-                        songs = songs
-                    )
-                }.collect { state ->
-                    _uiState.value = state
-                }
+            try {
+                // شجرة التبعية: نحتاج Artist أولاً للحصول على اسمه، ثم نجلب أغانيه
+                musicRepository.getArtistById(artistId)
+                    .flatMapLatest { artist ->
+                        if (artist != null) {
+                            musicRepository.getSongsByArtist(artist.name).map { songs ->
+                                ArtistUiState(
+                                    isLoading = false,
+                                    artist = artist,
+                                    albums = artist.albums,
+                                    songs = songs
+                                )
+                            }
+                        } else {
+                            flowOf(ArtistUiState(isLoading = false, error = "لم يتم العثور على الفنان"))
+                        }
+                    }
+                    .collect { state ->
+                        _uiState.value = state
+                    }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }

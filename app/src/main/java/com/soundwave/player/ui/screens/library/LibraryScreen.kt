@@ -19,7 +19,7 @@ import com.soundwave.player.domain.model.SortBy
 import com.soundwave.player.ui.components.*
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, androidx.compose.foundation.ExperimentalFoundationApi::class)
 @Composable
 fun LibraryScreen(
     onNavigateToAlbum: (Long) -> Unit,

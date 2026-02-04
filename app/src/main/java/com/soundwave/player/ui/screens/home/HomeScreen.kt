@@ -59,13 +59,8 @@ fun HomeScreen(
             )
         }
     ) { paddingValues ->
-        PullToRefreshBox(
-            isRefreshing = isRefreshing,
-            onRefresh = {
-                isRefreshing = true
-                viewModel.refresh()
-                isRefreshing = false
-            },
+    ) { paddingValues ->
+        Box(
             modifier = Modifier.padding(paddingValues)
         ) {
             when {
