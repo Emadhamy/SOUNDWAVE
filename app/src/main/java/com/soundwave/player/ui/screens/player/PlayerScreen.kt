@@ -338,7 +338,7 @@ private fun SongInfoSection(
             
             IconButton(onClick = onLyricsClick) {
                 Icon(
-                    imageVector = Icons.Default.Lyrics,
+                    imageVector = Icons.Default.Subtitles,
                     contentDescription = "كلمات الأغنية",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -75,7 +75,7 @@ fun LyricsScreen(
             
             lyricsState.lyrics == null -> {
                 EmptyState(
-                    icon = Icons.Default.Lyrics,
+                    icon = Icons.Default.Subtitles,
                     title = "لا توجد كلمات",
                     message = lyricsState.error ?: "لم يتم العثور على كلمات لهذه الأغنية",
                     modifier = Modifier.padding(paddingValues)

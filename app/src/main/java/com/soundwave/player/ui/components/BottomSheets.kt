@@ -90,7 +90,7 @@ fun SongOptionsBottomSheet(
             )
             
             BottomSheetOption(
-                icon = Icons.Default.AddToQueue,
+                icon = Icons.Default.QueueMusic,
                 title = "إضافة لقائمة الانتظار",
                 onClick = { onAddToQueue(); onDismiss() }
             )
