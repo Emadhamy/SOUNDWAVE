@@ -18,11 +18,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import com.soundwave.player.domain.repository.MusicRepository
 import com.soundwave.player.player.MusicPlayer
 import com.soundwave.player.player.timer.SleepTimerManager
 import com.soundwave.player.ui.navigation.NavGraph
 import com.soundwave.player.ui.theme.SoundWaveTheme
+import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -31,12 +34,18 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var musicPlayer: MusicPlayer
     
+    @Inject
+    lateinit var musicRepository: MusicRepository
+    
     private var hasPermission by mutableStateOf(false)
     
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         hasPermission = permissions.values.all { it }
+        if (hasPermission) {
+            triggerScan()
+        }
     }
     
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,8 +120,17 @@ class MainActivity : ComponentActivity() {
         
         if (notGranted.isEmpty()) {
             hasPermission = true
+            triggerScan()
         } else {
             permissionLauncher.launch(notGranted.toTypedArray())
+        }
+    }
+
+    private fun triggerScan() {
+        lifecycleScope.launch {
+            if (musicRepository.getSongCount() == 0) {
+                musicRepository.scanMediaStore()
+            }
         }
     }
 }

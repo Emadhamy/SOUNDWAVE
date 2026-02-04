@@ -8,11 +8,7 @@ import com.soundwave.player.domain.model.Song
 import com.soundwave.player.domain.repository.MusicRepository
 import com.soundwave.player.player.MusicPlayer
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -40,26 +36,23 @@ class ArtistViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
             
             try {
-            try {
                 // شجرة التبعية: نحتاج Artist أولاً للحصول على اسمه، ثم نجلب أغانيه
-                musicRepository.getArtistById(artistId)
-                    .flatMapLatest { artist ->
-                        if (artist != null) {
-                            musicRepository.getSongsByArtist(artist.name).map { songs ->
-                                ArtistUiState(
+                musicRepository.getArtistById(artistId).collect { artist ->
+                    if (artist != null) {
+                        musicRepository.getSongsByArtist(artist.name).collect { songs ->
+                            _uiState.update {
+                                it.copy(
                                     isLoading = false,
                                     artist = artist,
                                     albums = artist.albums,
                                     songs = songs
                                 )
                             }
-                        } else {
-                            flowOf(ArtistUiState(isLoading = false, error = "لم يتم العثور على الفنان"))
                         }
+                    } else {
+                        _uiState.update { it.copy(isLoading = false, error = "لم يتم العثور على الفنان") }
                     }
-                    .collect { state ->
-                        _uiState.value = state
-                    }
+                }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, error = e.message) }
             }

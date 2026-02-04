@@ -11,7 +11,6 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -39,16 +38,15 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(uiState.greeting.ifBlank { "مرحباً" }) },
                 actions = {
-                    IconButton(onClick = { /* ممكن تروح للبحث */ }) {
+                    IconButton(onClick = { /* تروح للبحث */ }) {
                         Icon(Icons.Default.Search, contentDescription = "بحث")
                     }
-                    IconButton(onClick = { /* ممكن تروح للإعدادات */ }) {
+                    IconButton(onClick = { /* تروح للإعدادات */ }) {
                         Icon(Icons.Default.Settings, contentDescription = "الإعدادات")
                     }
                 }
             )
         }
-    ) { paddingValues ->
     ) { paddingValues ->
         Box(
             modifier = Modifier.padding(paddingValues)

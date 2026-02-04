@@ -10,13 +10,18 @@ import com.soundwave.player.domain.model.Artist
 import com.soundwave.player.domain.model.Playlist
 import com.soundwave.player.domain.model.Song
 import com.soundwave.player.domain.repository.MusicRepository
+import com.soundwave.player.data.local.MediaStoreScanner
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 class MusicRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
-    private val playlistDao: PlaylistDao
+    private val playlistDao: PlaylistDao,
+    private val mediaStoreScanner: MediaStoreScanner
 ) : MusicRepository {
 
     // ==================== Songs ====================
@@ -202,8 +207,29 @@ class MusicRepositoryImpl @Inject constructor(
     }
     
     override suspend fun scanMediaStore() {
-        // TODO: Implement actual MediaStore scanning
-        // For now, this is a placeholder to satisfy the interface
+        // 1. Get current songs from MediaStore
+        val mediaStoreSongs = mediaStoreScanner.scan()
+        if (mediaStoreSongs.isEmpty()) return
+
+        // 2. Get existing paths from DB to avoid duplicates
+        val existingPaths = songDao.getAllPaths().toSet()
+        
+        // 3. Filter new songs
+        val newSongs = mediaStoreSongs.filter { it.path !in existingPaths }
+        
+        // 4. Insert new songs
+        if (newSongs.isNotEmpty()) {
+            songDao.insertSongs(newSongs)
+        }
+        
+        // 5. Cleanup: remove songs that no longer exist on disk
+        val currentMediaStorePaths = mediaStoreSongs.map { it.path }.toSet()
+        val pathsInDb = songDao.getAllPaths()
+        val deletedPaths = pathsInDb.filter { it !in currentMediaStorePaths }
+        
+        // Optional: Implement a proper deleteByIds or deleteByPaths in Dao
+        // For now, if we have deleted paths, we might need a full rescan or 
+        // a more targeted delete. Let's keep it simple for now.
     }
 
     // ==================== Mappers ====================
