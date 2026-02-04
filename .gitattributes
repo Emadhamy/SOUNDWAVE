@@ -1,0 +1,5 @@
+# Enforce LF for the Gradle wrapper script
+gradlew text eol=lf
+
+# Default behavior for other files
+* text=auto
