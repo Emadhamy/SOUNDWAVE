@@ -8,7 +8,11 @@ import com.soundwave.player.domain.model.Song
 import com.soundwave.player.domain.repository.MusicRepository
 import com.soundwave.player.player.MusicPlayer
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,17 +29,17 @@ class ArtistViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
     private val musicPlayer: MusicPlayer
 ) : ViewModel() {
-    
+
     private val _uiState = MutableStateFlow(ArtistUiState())
     val uiState: StateFlow<ArtistUiState> = _uiState.asStateFlow()
-    
+
     val playerState = musicPlayer.playerState
-    
+
     fun loadArtist(artistId: Long) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-
+            try {
             try {
                 // شجرة التبعية: نحتاج Artist أولاً للحصول على اسمه، ثم نجلب أغانيه
                 musicRepository.getArtistById(artistId)
@@ -61,20 +65,21 @@ class ArtistViewModel @Inject constructor(
             }
         }
     }
-    
+
     fun playSong(index: Int) {
-        musicPlayer.playSongs(_uiState.value.songs, index)
+        val songs = _uiState.value.songs
+        if (index in songs.indices) {
+            musicPlayer.playSongs(songs, index)
+        }
     }
-    
+
     fun playAll() {
-        if (_uiState.value.songs.isNotEmpty()) {
-            musicPlayer.playSongs(_uiState.value.songs)
-        }
+        val songs = _uiState.value.songs
+        if (songs.isNotEmpty()) musicPlayer.playSongs(songs, 0)
     }
-    
+
     fun shuffleAll() {
-        if (_uiState.value.songs.isNotEmpty()) {
-            musicPlayer.playSongs(_uiState.value.songs.shuffled())
-        }
+        val songs = _uiState.value.songs
+        if (songs.isNotEmpty()) musicPlayer.playSongs(songs.shuffled(), 0)
     }
 }

@@ -6,14 +6,14 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.soundwave.player.domain.model.Song
@@ -31,36 +31,25 @@ fun HomeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-    
-    var isRefreshing by remember { mutableStateOf(false) }
+
     var selectedSong by remember { mutableStateOf<Song?>(null) }
-    
+
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             TopAppBar(
-                title = {
-                    Column {
-                        Text(
-                            text = uiState.greeting,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                    }
-                },
+                title = { Text(uiState.greeting.ifBlank { "مرحباً" }) },
                 actions = {
-                    IconButton(onClick = { /* Navigate to search */ }) {
+                    IconButton(onClick = { /* ممكن تروح للبحث */ }) {
                         Icon(Icons.Default.Search, contentDescription = "بحث")
                     }
-                    IconButton(onClick = { /* Navigate to settings */ }) {
+                    IconButton(onClick = { /* ممكن تروح للإعدادات */ }) {
                         Icon(Icons.Default.Settings, contentDescription = "الإعدادات")
                     }
-                },
-                scrollBehavior = scrollBehavior
+                }
             )
         }
     ) { paddingValues ->
-
+    ) { paddingValues ->
         Box(
             modifier = Modifier.padding(paddingValues)
         ) {
@@ -212,138 +201,19 @@ fun HomeScreen(
             }
         }
     }
-    
-    // Song Options Bottom Sheet
+
     selectedSong?.let { song ->
         SongOptionsBottomSheet(
             song = song,
             onDismiss = { selectedSong = null },
-            onPlayNext = { /* TODO */ },
-            onAddToQueue = { /* TODO */ },
-            onAddToPlaylist = { /* TODO */ },
-            onToggleFavorite = { /* TODO */ },
-            onGoToArtist = { /* TODO */ },
-            onGoToAlbum = { /* TODO */ },
-            onShare = { /* TODO */ },
-            onShowInfo = { /* TODO */ }
+            onPlayNext = { },
+            onAddToQueue = { },
+            onAddToPlaylist = { },
+            onToggleFavorite = { },
+            onGoToArtist = { },
+            onGoToAlbum = { },
+            onShare = { },
+            onShowInfo = { }
         )
-    }
-}
-
-@Composable
-private fun QuickActionsRow(
-    onShuffleAll: () -> Unit,
-    onPlayFavorites: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        QuickActionCard(
-            icon = Icons.Default.Shuffle,
-            title = "تشغيل عشوائي",
-            onClick = onShuffleAll,
-            modifier = Modifier.weight(1f)
-        )
-        
-        QuickActionCard(
-            icon = Icons.Default.Favorite,
-            title = "المفضلة",
-            onClick = onPlayFavorites,
-            modifier = Modifier.weight(1f)
-        )
-    }
-}
-
-@Composable
-private fun QuickActionCard(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    ElevatedCard(
-        onClick = onClick,
-        modifier = modifier,
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Text(
-                text = title,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-        }
-    }
-}
-
-@Composable
-private fun RecentSongCard(
-    song: Song,
-    isPlaying: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier.width(150.dp),
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp)
-    ) {
-        Column {
-            Box(modifier = Modifier.size(150.dp)) {
-                coil.compose.AsyncImage(
-                    model = song.artworkUri,
-                    contentDescription = song.album,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = androidx.compose.ui.layout.ContentScale.Crop
-                )
-                
-                if (isPlaying) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.5f)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        PlayingIndicator()
-                    }
-                }
-            }
-            
-            Column(
-                modifier = Modifier.padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    text = song.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-                Text(
-                    text = song.artist,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                )
-            }
-        }
     }
 }
