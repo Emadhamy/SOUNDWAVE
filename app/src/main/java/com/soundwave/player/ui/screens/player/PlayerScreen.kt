@@ -2,6 +2,7 @@ package com.soundwave.player.ui.screens.player
 
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -54,7 +55,7 @@ fun PlayerScreen(
         targetValue = 360f,
         animationSpec = infiniteRepeatable(
             animation = tween(20000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
+            repeatMode = androidx.compose.animation.core.RepeatMode.Restart
         ),
         label = "albumRotation"
     )
@@ -338,7 +339,7 @@ private fun SongInfoSection(
             
             IconButton(onClick = onLyricsClick) {
                 Icon(
-                    imageVector = Icons.Default.Subtitles,
+                    imageVector = Icons.Filled.Subtitles,
                     contentDescription = "كلمات الأغنية",
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )

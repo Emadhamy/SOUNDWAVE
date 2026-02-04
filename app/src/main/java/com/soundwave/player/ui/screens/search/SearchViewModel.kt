@@ -68,8 +68,8 @@ class SearchViewModel @Inject constructor(
             
             try {
                 val songs = musicRepository.searchSongs(query).first()
-                val albums = musicRepository.searchAlbums(query)
-                val artists = musicRepository.searchArtists(query)
+                val albums = musicRepository.searchAlbums(query).first()
+                val artists = musicRepository.searchArtists(query).first()
                 
                 _uiState.update {
                     it.copy(

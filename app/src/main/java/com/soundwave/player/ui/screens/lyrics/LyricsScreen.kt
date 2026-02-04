@@ -5,6 +5,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -75,7 +76,7 @@ fun LyricsScreen(
             
             lyricsState.lyrics == null -> {
                 EmptyState(
-                    icon = Icons.Default.Subtitles,
+                    icon = Icons.Filled.Subtitles,
                     title = "لا توجد كلمات",
                     message = lyricsState.error ?: "لم يتم العثور على كلمات لهذه الأغنية",
                     modifier = Modifier.padding(paddingValues)

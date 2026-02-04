@@ -35,7 +35,7 @@ class ArtistViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
-            try {
+
             try {
                 // شجرة التبعية: نحتاج Artist أولاً للحصول على اسمه، ثم نجلب أغانيه
                 musicRepository.getArtistById(artistId)
