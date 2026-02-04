@@ -89,6 +89,34 @@ fun EqualizerScreen(
                 }
             }
             
+            // Smart Enhance Switch
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "تحسين الصوت الذكي",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = "تعديل تلقائي للوضوح والباس",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Switch(
+                        checked = state.isSmartEnhanceEnabled,
+                        onCheckedChange = { viewModel.setSmartEnhancementEnabled(it) },
+                        enabled = state.isEnabled
+                    )
+                }
+            }
+            
             // Presets
             Text(
                 text = "الإعدادات المسبقة",

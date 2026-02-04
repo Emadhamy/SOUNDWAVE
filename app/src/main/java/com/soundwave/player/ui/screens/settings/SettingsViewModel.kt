@@ -37,7 +37,7 @@ enum class ThemeMode {
 }
 
 enum class MiniPlayerStyle {
-    DOCKED, FLOATING
+    DOCKED, FLOATING, YOUTUBE
 }
 
 @HiltViewModel

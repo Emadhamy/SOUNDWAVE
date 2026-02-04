@@ -30,6 +30,7 @@ import com.soundwave.player.ui.screens.player.QueueScreen
 import com.soundwave.player.ui.screens.playlist.PlaylistScreen
 import com.soundwave.player.ui.screens.search.SearchScreen
 import com.soundwave.player.ui.screens.settings.SettingsScreen
+import com.soundwave.player.ui.screens.main.MainPagerScreen
 import com.soundwave.player.ui.screens.timer.SleepTimerScreen
 import java.net.URLDecoder
 import java.nio.charset.StandardCharsets
@@ -62,66 +63,70 @@ fun NavGraph() {
                 enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
                 exit = slideOutVertically(targetOffsetY = { it }) + fadeOut()
             ) {
-                Column {
-                    // Mini Player
-                    MiniPlayer(
-                        onClick = { navController.navigate(Screen.Player.route) },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    
-                    // Bottom Navigation Bar
-                    NavigationBar(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        tonalElevation = 0.dp
-                    ) {
-                        BottomNavItem.items.forEach { item ->
-                            val selected = currentDestination?.hierarchy?.any { 
-                                it.route == item.route 
-                            } == true
-                            
-                            NavigationBarItem(
-                                selected = selected,
-                                onClick = {
-                                    navController.navigate(item.route) {
-                                        popUpTo(navController.graph.findStartDestination().id) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                },
-                                icon = {
-                                    Icon(
-                                        imageVector = if (selected) item.selectedIcon else item.icon,
-                                        contentDescription = item.title
-                                    )
-                                },
-                                label = {
-                                    Text(
-                                        text = item.title,
-                                        style = MaterialTheme.typography.labelSmall
-                                    )
-                                },
-                                colors = NavigationBarItemDefaults.colors(
-                                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            )
+                // Bottom Navigation Bar
+                NavigationBar(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    tonalElevation = 0.dp
+                ) {
+                    BottomNavItem.items.forEach { item ->
+                        val selected = when (item.route) {
+                            Screen.Home.route -> currentDestination?.route == "main_pager/0" || currentDestination?.route == Screen.Home.route
+                            Screen.Library.route -> currentDestination?.route == "main_pager/1" || currentDestination?.route == Screen.Library.route
+                            Screen.Search.route -> currentDestination?.route == "main_pager/2" || currentDestination?.route == Screen.Search.route
+                            Screen.Settings.route -> currentDestination?.route == "main_pager/3" || currentDestination?.route == Screen.Settings.route
+                            else -> false
                         }
+                        
+                        NavigationBarItem(
+                            selected = selected,
+                            onClick = {
+                                val pageIndex = when (item.route) {
+                                    Screen.Home.route -> 0
+                                    Screen.Library.route -> 1
+                                    Screen.Search.route -> 2
+                                    Screen.Settings.route -> 3
+                                    else -> 0
+                                }
+                                navController.navigate("main_pager/$pageIndex") {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (selected) item.selectedIcon else item.icon,
+                                    contentDescription = item.title
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = item.title,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.primary,
+                                selectedTextColor = MaterialTheme.colorScheme.primary,
+                                indicatorColor = MaterialTheme.colorScheme.primaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
                     }
                 }
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = Screen.Splash.route,
-            modifier = Modifier.padding(
-                bottom = if (showBottomBar) paddingValues.calculateBottomPadding() else 0.dp
-            ),
+        Box(modifier = Modifier.fillMaxSize()) {
+            NavHost(
+                navController = navController,
+                startDestination = Screen.Splash.route,
+                modifier = Modifier.padding(
+                    bottom = if (showBottomBar) paddingValues.calculateBottomPadding() else 0.dp
+                ),
             enterTransition = {
                 fadeIn(animationSpec = tween(300)) + slideInHorizontally(
                     initialOffsetX = { 50 },
@@ -141,39 +146,57 @@ fun NavGraph() {
                 )
             }
         ) {
+            // Main Pager (Home, Library, Search, Settings)
+            composable(
+                route = "main_pager/{page}",
+                arguments = listOf(navArgument("page") { type = NavType.IntType })
+            ) { backStackEntry ->
+                val page = backStackEntry.arguments?.getInt("page") ?: 0
+                MainPagerScreen(
+                    initialPage = page,
+                    onNavigateToPlayer = { navController.navigate(Screen.Player.route) },
+                    onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) },
+                    onNavigateToArtist = { navController.navigate(Screen.Artist.createRoute(it)) },
+                    onNavigateToPlaylist = { navController.navigate(Screen.Playlist.createRoute(it)) },
+                    onNavigateToFolder = { navController.navigate(Screen.Folder.createRoute(it)) },
+                    onNavigateToGenre = { navController.navigate(Screen.Genre.createRoute(it)) },
+                    onNavigateToLibrary = { navController.navigate("main_pager/1") },
+                    onNavigateToSettings = { navController.navigate("main_pager/3") },
+                    onNavigateToSearch = { navController.navigate("main_pager/2") },
+                    onPageChanged = { newPage ->
+                        // Optional: update route without adding to backstack to reflect current page
+                        // but navigate is simpler for synchronization with bottom bar
+                    }
+                )
+            }
+
             // Splash Screen
             composable(Screen.Splash.route) {
                 SplashScreen(
                     onTimeout = {
-                        navController.navigate(Screen.Home.route) {
+                        navController.navigate("main_pager/0") {
                             popUpTo(Screen.Splash.route) { inclusive = true }
                         }
                     }
                 )
             }
             
-            // Home Screen
+            // Legacy Home route (redirect to pager)
             composable(Screen.Home.route) {
-                HomeScreen(
-                    onNavigateToPlayer = { navController.navigate(Screen.Player.route) },
-                    onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) },
-                    onNavigateToArtist = { navController.navigate(Screen.Artist.createRoute(it)) },
-                    onNavigateToPlaylist = { navController.navigate(Screen.Playlist.createRoute(it)) },
-                    onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
-                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
-                    onNavigateToSearch = { navController.navigate(Screen.Search.route) }
-                )
+                LaunchedEffect(Unit) {
+                    navController.navigate("main_pager/0") {
+                        popUpTo(Screen.Home.route) { inclusive = true }
+                    }
+                }
             }
             
-            // Library Screen
+            // Legacy Library route (redirect to pager)
             composable(Screen.Library.route) {
-                LibraryScreen(
-                    onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) },
-                    onNavigateToArtist = { navController.navigate(Screen.Artist.createRoute(it)) },
-                    onNavigateToPlaylist = { navController.navigate(Screen.Playlist.createRoute(it)) },
-                    onNavigateToFolder = { navController.navigate(Screen.Folder.createRoute(it)) },
-                    onNavigateToGenre = { navController.navigate(Screen.Genre.createRoute(it)) }
-                )
+                LaunchedEffect(Unit) {
+                    navController.navigate("main_pager/1") {
+                        popUpTo(Screen.Library.route) { inclusive = true }
+                    }
+                }
             }
             
             // Player Screen
@@ -189,12 +212,13 @@ fun NavGraph() {
                 )
             }
             
-            // Search Screen
+            // Search Screen (handled by pager, but kept for direct navigation if needed)
             composable(Screen.Search.route) {
-                SearchScreen(
-                    onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) },
-                    onNavigateToArtist = { navController.navigate(Screen.Artist.createRoute(it)) }
-                )
+                LaunchedEffect(Unit) {
+                    navController.navigate("main_pager/2") {
+                        popUpTo(Screen.Search.route) { inclusive = true }
+                    }
+                }
             }
             
             // Equalizer Screen
@@ -204,9 +228,13 @@ fun NavGraph() {
                 )
             }
             
-            // Settings Screen
+            // Settings Screen (handled by pager)
             composable(Screen.Settings.route) {
-                SettingsScreen()
+                LaunchedEffect(Unit) {
+                    navController.navigate("main_pager/3") {
+                        popUpTo(Screen.Settings.route) { inclusive = true }
+                    }
+                }
             }
             
             // Lyrics Screen
@@ -290,6 +318,16 @@ fun NavGraph() {
                     onBackClick = { navController.popBackStack() }
                 )
             }
+            }
+        }
+        
+        // Global Mini Player Overlay
+        // Positional logic is handled inside MiniPlayer component
+        if (showBottomBar) {
+            MiniPlayer(
+                onClick = { navController.navigate(Screen.Player.route) },
+                modifier = Modifier.fillMaxSize()
+            )
         }
     }
 }

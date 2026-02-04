@@ -46,6 +46,10 @@ class EqualizerViewModel @Inject constructor(
         equalizerManager.setReverb(preset)
     }
     
+    fun setSmartEnhancementEnabled(enabled: Boolean) {
+        equalizerManager.setSmartEnhancementEnabled(enabled)
+    }
+    
     fun resetToDefault() {
         equalizerManager.resetToDefault()
     }

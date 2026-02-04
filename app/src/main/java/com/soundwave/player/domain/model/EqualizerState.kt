@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class EqualizerState(
     val isEnabled: Boolean = false,
+    val isSmartEnhanceEnabled: Boolean = false,
     val preset: EqualizerPreset = EqualizerPreset.NORMAL,
     val bandLevels: List<Int> = List(10) { 0 },
     val bassBoost: Int = 0,
@@ -30,6 +31,9 @@ enum class EqualizerPreset(val displayName: String, val levels: List<Int>) {
     LOUDNESS("صوت عالي", listOf(4, 3, 0, 0, -1, -1, 0, 0, 3, 4)),
     SPOKEN_WORD("كلام", listOf(-1, 0, 0, 2, 3, 3, 2, 0, 0, -1)),
     ACOUSTIC("أكوستيك", listOf(3, 2, 1, 1, 2, 1, 2, 2, 2, 3)),
+    CRYSTAL_CLEAR("وضوح فائق", listOf(2, 2, 1, 0, 1, 2, 3, 4, 3, 2)),
+    VOCAL_BOOST("تعزيز الصوت", listOf(-1, 0, 1, 3, 4, 3, 2, 1, 0, -1)),
+    DEEP_BASS("باس عميق", listOf(6, 5, 3, 1, 0, 0, 0, 0, 1, 1)),
     CUSTOM("مخصص", listOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0));
     
     companion object {

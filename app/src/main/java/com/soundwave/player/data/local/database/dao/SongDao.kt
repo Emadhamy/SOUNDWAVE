@@ -67,7 +67,7 @@ interface SongDao {
     @Query("SELECT DISTINCT path FROM songs")
     suspend fun getAllPaths(): List<String>
     
-    @Query("SELECT * FROM songs WHERE path LIKE :folderPath || '%' ORDER BY title")
+    @Query("SELECT * FROM songs WHERE path LIKE :folderPath || '/%' ORDER BY title")
     fun getSongsByFolder(folderPath: String): Flow<List<SongEntity>>
     
     @Query("SELECT DISTINCT SUBSTR(path, 1, LENGTH(path) - LENGTH(SUBSTR(path, -INSTR(REVERSE(path), '/')))) as folder FROM songs ORDER BY folder")

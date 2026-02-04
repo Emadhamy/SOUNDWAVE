@@ -54,5 +54,5 @@ data class Song(
         }
         
     val folder: String
-        get() = path.substringBeforeLast("/").substringAfterLast("/")
+        get() = path.substringBeforeLast("/")
 }

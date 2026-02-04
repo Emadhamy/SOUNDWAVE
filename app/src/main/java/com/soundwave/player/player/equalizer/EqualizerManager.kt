@@ -108,6 +108,10 @@ class EqualizerManager @Inject constructor() {
             
             isInitialized = true
             
+            if (_state.value.isSmartEnhanceEnabled) {
+                applySmartEnhancement(true)
+            }
+            
         } catch (e: Exception) {
             e.printStackTrace()
             isInitialized = false
@@ -140,8 +144,8 @@ class EqualizerManager @Inject constructor() {
                 val range = eq.bandLevelRange
                 val minLevel = range[0]
                 val maxLevel = range[1]
-                // تحويل من -12..12 إلى نطاق المعادل الفعلي
-                val scaledLevel = (minLevel + (level + 12) * (maxLevel - minLevel) / 24).toShort()
+                // تحويل من -15..15 إلى نطاق المعادل الفعلي
+                val scaledLevel = (minLevel + (level + 15) * (maxLevel - minLevel) / 30).toShort()
                 eq.setBandLevel(bandIndex.toShort(), scaledLevel)
             }
         }
@@ -222,6 +226,29 @@ class EqualizerManager @Inject constructor() {
         _state.update { it.copy(stereoBalance = balance.coerceIn(-1f, 1f)) }
     }
     
+    fun setSmartEnhancementEnabled(enabled: Boolean) {
+        _state.update { it.copy(isSmartEnhanceEnabled = enabled) }
+        applySmartEnhancement(enabled)
+    }
+    
+    private fun applySmartEnhancement(enabled: Boolean) {
+        if (enabled && _state.value.isEnabled) {
+            // Apply a "Smart" boost: Loudness + subtle Bass/Treble
+            loudnessEnhancer?.apply {
+                this.enabled = true
+                setTargetGain(500) // 5dB boost
+            }
+            bassBoost?.apply {
+                this.enabled = true
+                if (strengthSupported) setStrength(300)
+            }
+        } else {
+            // Revert to manual state
+            setLoudnessGain(_state.value.loudnessGain)
+            setBassBoost(_state.value.bassBoost)
+        }
+    }
+    
     fun resetToDefault() {
         setPreset(EqualizerPreset.NORMAL)
         setBassBoost(0)
@@ -269,7 +296,7 @@ class EqualizerManager @Inject constructor() {
         
         levels.forEachIndexed { index, level ->
             if (index < eq.numberOfBands) {
-                val scaledLevel = (minLevel + (level + 12) * (maxLevel - minLevel) / 24).toShort()
+                val scaledLevel = (minLevel + (level + 15) * (maxLevel - minLevel) / 30).toShort()
                 eq.setBandLevel(index.toShort(), scaledLevel)
             }
         }
@@ -292,7 +319,7 @@ class EqualizerManager @Inject constructor() {
         return equalizer?.let { eq ->
             val range = eq.bandLevelRange
             Pair(range[0].toInt() / 100, range[1].toInt() / 100)
-        } ?: Pair(-12, 12)
+        } ?: Pair(-15, 15)
     }
     
     fun isSupported(): Boolean = isInitialized

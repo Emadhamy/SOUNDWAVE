@@ -92,6 +92,7 @@ fun SettingsScreen(
                     subtitle = when (state.miniPlayerStyle) {
                         MiniPlayerStyle.DOCKED -> "مثبت"
                         MiniPlayerStyle.FLOATING -> "عائم"
+                        MiniPlayerStyle.YOUTUBE -> "يوتيوب"
                     },
                     onClick = { showMiniPlayerDialog = true }
                 )
@@ -286,6 +287,7 @@ fun SettingsScreen(
                                 when (style) {
                                     MiniPlayerStyle.DOCKED -> "مثبت (كلاسيكي)"
                                     MiniPlayerStyle.FLOATING -> "عائم (حديث)"
+                                    MiniPlayerStyle.YOUTUBE -> "عائم (على طريقة يوتيوب)"
                                 }
                             )
                         }
