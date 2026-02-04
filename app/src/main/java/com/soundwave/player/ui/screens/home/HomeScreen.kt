@@ -26,6 +26,8 @@ fun HomeScreen(
     onNavigateToArtist: (Long) -> Unit,
     onNavigateToPlaylist: (Long) -> Unit,
     onNavigateToLibrary: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onNavigateToSettings: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -38,10 +40,10 @@ fun HomeScreen(
             TopAppBar(
                 title = { Text(uiState.greeting.ifBlank { "مرحباً" }) },
                 actions = {
-                    IconButton(onClick = { /* تروح للبحث */ }) {
+                    IconButton(onClick = onNavigateToSearch) {
                         Icon(Icons.Default.Search, contentDescription = "بحث")
                     }
-                    IconButton(onClick = { /* تروح للإعدادات */ }) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(Icons.Default.Settings, contentDescription = "الإعدادات")
                     }
                 }

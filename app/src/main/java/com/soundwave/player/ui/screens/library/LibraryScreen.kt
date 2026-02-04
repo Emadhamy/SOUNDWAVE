@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.soundwave.player.domain.model.Song
@@ -33,7 +34,7 @@ fun LibraryScreen(
     val uiState by viewModel.uiState.collectAsState()
     val playerState by viewModel.playerState.collectAsState()
     
-    val tabs = listOf("الأغاني", "الألبومات", "الفنانون", "القوائم", "الأنواع")
+    val tabs = listOf("الأغاني", "الألبومات", "الفنانون", "الفولدرات", "القوائم", "الأنواع")
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val coroutineScope = rememberCoroutineScope()
     
@@ -144,13 +145,18 @@ fun LibraryScreen(
                         isLoading = uiState.isLoading,
                         onArtistClick = onNavigateToArtist
                     )
-                    3 -> PlaylistsTab(
+                    3 -> FoldersTab(
+                        folders = uiState.folders,
+                        isLoading = uiState.isLoading,
+                        onFolderClick = onNavigateToFolder
+                    )
+                    4 -> PlaylistsTab(
                         playlists = uiState.playlists,
                         isLoading = uiState.isLoading,
                         onPlaylistClick = onNavigateToPlaylist,
                         onCreatePlaylist = { showCreatePlaylistDialog = true }
                     )
-                    4 -> GenresTab(
+                    5 -> GenresTab(
                         genres = uiState.genres,
                         isLoading = uiState.isLoading,
                         onGenreClick = onNavigateToGenre
@@ -365,6 +371,88 @@ private fun PlaylistsTab(
             }
         }
     }
+}
+
+@Composable
+private fun FoldersTab(
+    folders: List<String>,
+    isLoading: Boolean,
+    onFolderClick: (String) -> Unit
+) {
+    when {
+        isLoading -> LoadingState()
+        folders.isEmpty() -> EmptyState(
+            icon = Icons.Default.Folder,
+            title = "لا توجد مجلدات",
+            message = "لم يتم العثور على مجلدات تحتوي على موسيقى"
+        )
+        else -> {
+            LazyColumn(
+                contentPadding = PaddingValues(vertical = 8.dp)
+            ) {
+                item {
+                    Text(
+                        text = "${folders.size} مجلد",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                    )
+                }
+                
+                items(folders) { folder ->
+                    FolderItem(
+                        folderPath = folder,
+                        onClick = { onFolderClick(folder) },
+                        onMoreClick = { },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+                
+                item { Spacer(modifier = Modifier.height(100.dp)) }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FolderItem(
+    folderPath: String,
+    onClick: () -> Unit,
+    onMoreClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val folderName = folderPath.substringAfterLast("/")
+    
+    ListItem(
+        headlineContent = { 
+            Text(
+                text = folderName,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        supportingContent = { 
+            Text(
+                text = folderPath,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                style = MaterialTheme.typography.bodySmall
+            )
+        },
+        leadingContent = {
+            Icon(
+                imageVector = Icons.Default.Folder,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        },
+        trailingContent = {
+            IconButton(onClick = onMoreClick) {
+                Icon(Icons.Default.MoreVert, contentDescription = "المزيد")
+            }
+        },
+        modifier = modifier.clickable(onClick = onClick)
+    )
 }
 
 @Composable

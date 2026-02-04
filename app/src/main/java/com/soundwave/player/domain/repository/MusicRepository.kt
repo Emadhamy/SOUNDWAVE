@@ -14,6 +14,8 @@ interface MusicRepository {
     fun getSongsByAlbum(albumId: Long): Flow<List<Song>>
     fun getSongsByArtist(artist: String): Flow<List<Song>>
     fun getSongsByFolder(folderPath: String): Flow<List<Song>>
+    fun getSongsByGenre(genre: String): Flow<List<Song>>
+    fun getAllFolders(): Flow<List<String>>
     fun searchSongs(query: String): Flow<List<Song>>
     fun getRecentlyPlayedSongs(limit: Int): Flow<List<Song>>
     fun getRecentlyAddedSongs(limit: Int): Flow<List<Song>>

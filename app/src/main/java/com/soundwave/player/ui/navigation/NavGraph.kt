@@ -20,7 +20,10 @@ import com.soundwave.player.ui.screens.album.AlbumScreen
 import com.soundwave.player.ui.screens.artist.ArtistScreen
 import com.soundwave.player.ui.screens.equalizer.EqualizerScreen
 import com.soundwave.player.ui.screens.home.HomeScreen
+import com.soundwave.player.ui.screens.splash.SplashScreen
 import com.soundwave.player.ui.screens.library.LibraryScreen
+import com.soundwave.player.ui.screens.library.FolderScreen
+import com.soundwave.player.ui.screens.library.GenreScreen
 import com.soundwave.player.ui.screens.lyrics.LyricsScreen
 import com.soundwave.player.ui.screens.player.PlayerScreen
 import com.soundwave.player.ui.screens.player.QueueScreen
@@ -28,6 +31,8 @@ import com.soundwave.player.ui.screens.playlist.PlaylistScreen
 import com.soundwave.player.ui.screens.search.SearchScreen
 import com.soundwave.player.ui.screens.settings.SettingsScreen
 import com.soundwave.player.ui.screens.timer.SleepTimerScreen
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,11 +43,14 @@ fun NavGraph() {
     
     // الشاشات التي لا يظهر فيها شريط التنقل السفلي
     val hideBottomBarRoutes = listOf(
+        Screen.Splash.route,
         Screen.Player.route,
         Screen.Equalizer.route,
         Screen.Lyrics.route,
         Screen.SleepTimer.route,
-        Screen.Queue.route
+        Screen.Queue.route,
+        Screen.Folder.route,
+        Screen.Genre.route
     )
     
     val showBottomBar = currentDestination?.route !in hideBottomBarRoutes
@@ -110,7 +118,7 @@ fun NavGraph() {
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = Screen.Home.route,
+            startDestination = Screen.Splash.route,
             modifier = Modifier.padding(
                 bottom = if (showBottomBar) paddingValues.calculateBottomPadding() else 0.dp
             ),
@@ -133,6 +141,17 @@ fun NavGraph() {
                 )
             }
         ) {
+            // Splash Screen
+            composable(Screen.Splash.route) {
+                SplashScreen(
+                    onTimeout = {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Splash.route) { inclusive = true }
+                        }
+                    }
+                )
+            }
+            
             // Home Screen
             composable(Screen.Home.route) {
                 HomeScreen(
@@ -140,7 +159,9 @@ fun NavGraph() {
                     onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) },
                     onNavigateToArtist = { navController.navigate(Screen.Artist.createRoute(it)) },
                     onNavigateToPlaylist = { navController.navigate(Screen.Playlist.createRoute(it)) },
-                    onNavigateToLibrary = { navController.navigate(Screen.Library.route) }
+                    onNavigateToLibrary = { navController.navigate(Screen.Library.route) },
+                    onNavigateToSettings = { navController.navigate(Screen.Settings.route) },
+                    onNavigateToSearch = { navController.navigate(Screen.Search.route) }
                 )
             }
             
@@ -241,6 +262,32 @@ fun NavGraph() {
                     artistId = backStackEntry.arguments?.getLong("artistId") ?: 0L,
                     onBackClick = { navController.popBackStack() },
                     onNavigateToAlbum = { navController.navigate(Screen.Album.createRoute(it)) }
+                )
+            }
+            
+            // Folder Screen
+            composable(
+                route = Screen.Folder.route,
+                arguments = listOf(navArgument("folderPath") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedPath = backStackEntry.arguments?.getString("folderPath") ?: ""
+                val folderPath = URLDecoder.decode(encodedPath, StandardCharsets.UTF_8.toString())
+                FolderScreen(
+                    folderPath = folderPath,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            
+            // Genre Screen
+            composable(
+                route = Screen.Genre.route,
+                arguments = listOf(navArgument("genreName") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val encodedName = backStackEntry.arguments?.getString("genreName") ?: ""
+                val genreName = URLDecoder.decode(encodedName, StandardCharsets.UTF_8.toString())
+                GenreScreen(
+                    genreName = genreName,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

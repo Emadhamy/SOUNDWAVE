@@ -82,9 +82,10 @@ private val LightColorScheme = lightColorScheme(
 fun SoundWaveTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     dynamicColor: Boolean = false,
+    accentColor: Int? = null,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
+    val initialColorScheme = when {
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) 
@@ -92,6 +93,18 @@ fun SoundWaveTheme(
         }
         darkTheme -> DarkColorScheme
         else -> LightColorScheme
+    }
+
+    val colorScheme = if (accentColor != null) {
+        val color = Color(accentColor)
+        initialColorScheme.copy(
+            primary = color,
+            secondary = color.copy(alpha = 0.8f),
+            tertiary = color.copy(alpha = 0.6f),
+            surfaceTint = color
+        )
+    } else {
+        initialColorScheme
     }
     
     val view = LocalView.current

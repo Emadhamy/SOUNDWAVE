@@ -20,7 +20,9 @@ class PlayerViewModel @Inject constructor(
     private val musicPlayer: MusicPlayer,
     private val musicRepository: MusicRepository,
     private val lyricsManager: LyricsManager,
-    private val sleepTimerManager: SleepTimerManager
+    private val sleepTimerManager: SleepTimerManager,
+    private val visualizerManager: com.soundwave.player.player.visualizer.VisualizerManager,
+    private val preferencesRepository: com.soundwave.player.data.repository.UserPreferencesRepository
 ) : ViewModel() {
     
     val playerState: StateFlow<PlayerState> = musicPlayer.playerState
@@ -29,15 +31,33 @@ class PlayerViewModel @Inject constructor(
     
     val lyricsState = lyricsManager.state
     val sleepTimerState = sleepTimerManager.state
+    val visualizerData = visualizerManager.data
+    val visualizerEnabled = visualizerManager.isEnabled
+    
+    fun setVisualizerEnabled(enabled: Boolean) {
+        visualizerManager.setEnabled(enabled)
+    }
     
     private val _isFavorite = MutableStateFlow(false)
     val isFavorite: StateFlow<Boolean> = _isFavorite.asStateFlow()
+    
+    private val _isMiniPlayerDismissed = MutableStateFlow(false)
+    val isMiniPlayerDismissed: StateFlow<Boolean> = _isMiniPlayerDismissed.asStateFlow()
+
+    private val _miniPlayerStyle = MutableStateFlow(com.soundwave.player.ui.screens.settings.MiniPlayerStyle.DOCKED)
+    val miniPlayerStyle: StateFlow<com.soundwave.player.ui.screens.settings.MiniPlayerStyle> = _miniPlayerStyle.asStateFlow()
+    
+    private var lastSongId: Long? = null
     
     init {
         // مراقبة الأغنية الحالية
         viewModelScope.launch {
             playerState.collect { state ->
                 state.currentSong?.let { song ->
+                    if (song.id != lastSongId) {
+                        _isMiniPlayerDismissed.value = false
+                        lastSongId = song.id
+                    }
                     _isFavorite.value = song.isFavorite
                     // تحميل الكلمات
                     lyricsManager.loadLyrics(song)
@@ -49,6 +69,13 @@ class PlayerViewModel @Inject constructor(
         viewModelScope.launch {
             currentPosition.collect { position ->
                 lyricsManager.updateCurrentLine(position)
+            }
+        }
+
+        // مراقبة نمط المشغل المصغر
+        viewModelScope.launch {
+            preferencesRepository.miniPlayerStyle.collect { style ->
+                _miniPlayerStyle.value = style
             }
         }
     }
@@ -117,5 +144,13 @@ class PlayerViewModel @Inject constructor(
     
     fun cancelSleepTimer() {
         sleepTimerManager.cancel()
+    }
+
+    fun dismissMiniPlayer() {
+        _isMiniPlayerDismissed.value = true
+    }
+
+    fun pausePlayback() {
+        musicPlayer.pause()
     }
 }

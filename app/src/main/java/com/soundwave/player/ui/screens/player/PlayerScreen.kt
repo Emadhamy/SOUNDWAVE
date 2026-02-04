@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.*
@@ -13,6 +14,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
@@ -45,6 +47,14 @@ fun PlayerScreen(
     val isFavorite by viewModel.isFavorite.collectAsState()
     val sleepTimerState by viewModel.sleepTimerState.collectAsState()
     val currentSong = playerState.currentSong
+    val visualizerData by viewModel.visualizerData.collectAsState()
+    
+    // Initialize visualizer with session ID from playerState (if available)
+    LaunchedEffect(playerState.audioSessionId) {
+        if (playerState.audioSessionId != 0) {
+            viewModel.setVisualizerEnabled(true)
+        }
+    }
     
     var showSpeedSheet by remember { mutableStateOf(false) }
     
@@ -64,6 +74,36 @@ fun PlayerScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
+            .pointerInput(Unit) {
+                var offsetX = 0f
+                var offsetY = 0f
+                detectDragGestures(
+                    onDragStart = {
+                        offsetX = 0f
+                        offsetY = 0f
+                    },
+                    onDrag = { change, dragAmount ->
+                        change.consume()
+                        offsetX += dragAmount.x
+                        offsetY += dragAmount.y
+                    },
+                    onDragEnd = {
+                        val absX = kotlin.math.abs(offsetX)
+                        val absY = kotlin.math.abs(offsetY)
+                        if (absX > absY) {
+                            if (absX > 100) {
+                                if (offsetX > 0) viewModel.seekToPrevious() else viewModel.seekToNext()
+                            }
+                        } else {
+                            if (offsetY > 150) {
+                                onBackClick()
+                            } else if (offsetY < -150) {
+                                onNavigateToQueue()
+                            }
+                        }
+                    }
+                )
+            }
     ) {
         // Blurred Background
         currentSong?.artworkUri?.let { uri ->
@@ -78,7 +118,7 @@ fun PlayerScreen(
             )
         }
         
-        // Gradient Overlay
+        // Gradient Overlay (Transparent Mode)
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -86,7 +126,8 @@ fun PlayerScreen(
                     Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
-                            MaterialTheme.colorScheme.background.copy(alpha = 0.7f),
+                            Color.Transparent, // More transparent mid section
+                            MaterialTheme.colorScheme.background.copy(alpha = 0.5f),
                             MaterialTheme.colorScheme.background
                         )
                     )
@@ -107,6 +148,42 @@ fun PlayerScreen(
                 onTimerClick = onNavigateToTimer,
                 sleepTimerActive = sleepTimerState.isActive
             )
+
+            // Dynamic Glow behind Album Art
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(0.dp)
+                    .graphicsLayer { 
+                        alpha = if (playerState.isPlaying) 0.5f else 0f
+                    }
+            ) {
+                // Glow effect based on frequencies
+                val amplitude = visualizerData.amplitudes.take(10).sum() / 10f
+                val glowScale by animateFloatAsState(
+                    targetValue = 1f + (amplitude * 0.5f),
+                    animationSpec = spring(stiffness = Spring.StiffnessLow),
+                    label = "glowScale"
+                )
+                
+                Box(
+                    modifier = Modifier
+                        .size(300.dp)
+                        .align(Alignment.Center)
+                        .graphicsLayer { 
+                            scaleX = glowScale
+                            scaleY = glowScale
+                        }
+                        .background(
+                            Brush.radialGradient(
+                                colors = listOf(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+            }
             
             Column(
                 modifier = Modifier

@@ -3,7 +3,10 @@ package com.soundwave.player.ui.components
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -12,14 +15,20 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.soundwave.player.ui.screens.player.PlayerViewModel
+import com.soundwave.player.ui.screens.settings.MiniPlayerStyle
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MiniPlayer(
     onClick: () -> Unit,
@@ -30,17 +39,39 @@ fun MiniPlayer(
     val currentPosition by viewModel.currentPosition.collectAsState()
     val currentSong = playerState.currentSong
     
+    val isDismissed by viewModel.isMiniPlayerDismissed.collectAsState()
+    val miniPlayerStyle by viewModel.miniPlayerStyle.collectAsState()
+    val isFloating = miniPlayerStyle == MiniPlayerStyle.FLOATING
+    
     AnimatedVisibility(
-        visible = currentSong != null,
+        visible = currentSong != null && !isDismissed,
         enter = slideInVertically(initialOffsetY = { it }) + fadeIn(),
         exit = slideOutVertically(targetOffsetY = { it }) + fadeOut(),
         modifier = modifier
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onVerticalDrag = { _, dragAmount: Float ->
+                        if (dragAmount > 50f) { // Threshold for swipe down
+                            viewModel.pausePlayback()
+                            viewModel.dismissMiniPlayer()
+                        }
+                    }
+                )
+            }
     ) {
         currentSong?.let { song ->
             Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                tonalElevation = 2.dp
+                modifier = Modifier
+                    .padding(
+                        horizontal = if (isFloating) 16.dp else 8.dp,
+                        vertical = if (isFloating) 12.dp else 4.dp
+                    )
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(if (isFloating) 24.dp else 12.dp)),
+                color = if (isFloating) MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp) 
+                        else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.95f),
+                tonalElevation = if (isFloating) 8.dp else 4.dp,
+                shadowElevation = if (isFloating) 12.dp else 6.dp
             ) {
                 Column {
                     // Progress Indicator
@@ -82,9 +113,10 @@ fun MiniPlayer(
                             Text(
                                 text = song.title,
                                 style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onSurface,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                modifier = Modifier.basicMarquee()
                             )
                             
                             Text(
@@ -92,7 +124,7 @@ fun MiniPlayer(
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
+                                modifier = Modifier.basicMarquee()
                             )
                         }
                         

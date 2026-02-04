@@ -1,5 +1,6 @@
 package com.soundwave.player.ui.screens.equalizer
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -12,8 +13,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.soundwave.player.domain.model.EqualizerPreset
 import com.soundwave.player.domain.model.ReverbPreset
@@ -110,9 +119,9 @@ fun EqualizerScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
-                        .height(200.dp),
+                        .height(450.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly,
-                    verticalAlignment = Alignment.Bottom
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     state.bandLevels.take(numberOfBands).forEachIndexed { index, level ->
                         EqualizerBand(
@@ -176,6 +185,7 @@ fun EqualizerScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EqualizerBand(
     frequency: String,
@@ -183,41 +193,98 @@ private fun EqualizerBand(
     enabled: Boolean,
     onLevelChange: (Int) -> Unit
 ) {
+    val accentColor = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(40.dp)
+        modifier = Modifier
+            .width(62.dp)
+            .fillMaxHeight()
     ) {
         Text(
-            text = "+12",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        
-        Slider(
-            value = level.toFloat(),
-            onValueChange = { onLevelChange(it.toInt()) },
-            valueRange = -12f..12f,
-            enabled = enabled,
-            modifier = Modifier
-                .weight(1f)
-                .graphicsLayer { rotationZ = 270f }
-                .width(150.dp),
-            colors = SliderDefaults.colors(
-                thumbColor = MaterialTheme.colorScheme.primary,
-                activeTrackColor = MaterialTheme.colorScheme.primary
-            )
-        )
-        
-        Text(
-            text = "-12",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            text = if (level > 0) "+$level" else "$level",
+            style = MaterialTheme.typography.labelSmall.copy(fontWeight = FontWeight.Bold),
+            color = if (enabled) accentColor else MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Spacer(modifier = Modifier.height(8.dp))
         
+        var localLevel by remember(level) { mutableFloatStateOf(level.toFloat()) }
+        
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            // Background Vertical Track Line
+            Box(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(4.dp)
+                    .clip(androidx.compose.foundation.shape.CircleShape)
+                    .background(trackColor.copy(alpha = 0.5f))
+            )
+
+            Slider(
+                value = localLevel,
+                onValueChange = { 
+                    localLevel = it
+                    onLevelChange(it.toInt())
+                },
+                valueRange = -15f..15f,
+                enabled = enabled,
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .graphicsLayer { 
+                        rotationZ = 270f 
+                    }
+                    .width(380.dp),
+                thumb = {
+                    Surface(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(2.dp),
+                        shape = androidx.compose.foundation.shape.CircleShape,
+                        color = if (enabled) accentColor else MaterialTheme.colorScheme.surfaceVariant,
+                        tonalElevation = 8.dp,
+                        shadowElevation = 4.dp,
+                        border = androidx.compose.foundation.BorderStroke(2.dp, Color.White.copy(alpha = 0.5f))
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Box(
+                                modifier = Modifier
+                                    .size(10.dp)
+                                    .clip(androidx.compose.foundation.shape.CircleShape)
+                                    .background(Color.White)
+                            )
+                        }
+                    }
+                },
+                track = { sliderState ->
+                    // Custom track if needed, but the rotated default can work with colors
+                    SliderDefaults.Track(
+                        sliderState = sliderState,
+                        modifier = Modifier.height(6.dp),
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = accentColor,
+                            inactiveTrackColor = Color.Transparent
+                        )
+                    )
+                }
+            )
+        }
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
         Text(
-            text = frequency,
+            text = frequency.replace("Hz", "").trim(),
+            style = MaterialTheme.typography.labelMedium.copy(fontWeight = FontWeight.Bold),
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = if (frequency.contains("kHz")) "kHz" else "Hz",
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )

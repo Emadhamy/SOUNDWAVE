@@ -29,14 +29,18 @@ class MusicService : MediaSessionService() {
     @Inject
     lateinit var equalizerManager: EqualizerManager
     
+    @Inject
+    lateinit var visualizerManager: com.soundwave.player.player.visualizer.VisualizerManager
+    
     private var mediaSession: MediaSession? = null
     
     private val playerListener = object : Player.Listener {
         override fun onPlaybackStateChanged(playbackState: Int) {
             when (playbackState) {
                 Player.STATE_READY -> {
-                    // تهيئة المعادل عند جاهزية المشغل
+                    // تهيئة المعادل والمصور عند جاهزية المشغل
                     equalizerManager.initialize(player.audioSessionId)
+                    visualizerManager.initialize(player.audioSessionId)
                 }
                 Player.STATE_ENDED -> {
                     // يمكن إضافة منطق إضافي هنا

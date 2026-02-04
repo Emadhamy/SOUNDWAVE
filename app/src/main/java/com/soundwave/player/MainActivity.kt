@@ -21,8 +21,11 @@ import androidx.core.content.ContextCompat
 import com.soundwave.player.domain.repository.MusicRepository
 import com.soundwave.player.player.MusicPlayer
 import com.soundwave.player.player.timer.SleepTimerManager
+import com.soundwave.player.data.repository.UserPreferencesRepository
 import com.soundwave.player.ui.navigation.NavGraph
 import com.soundwave.player.ui.theme.SoundWaveTheme
+import com.soundwave.player.ui.screens.settings.ThemeMode
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -36,6 +39,9 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var musicRepository: MusicRepository
+
+    @Inject
+    lateinit var preferencesRepository: UserPreferencesRepository
     
     private var hasPermission by mutableStateOf(false)
     
@@ -55,7 +61,21 @@ class MainActivity : ComponentActivity() {
         checkAndRequestPermissions()
         
         setContent {
-            SoundWaveTheme {
+            val themeMode by preferencesRepository.themeMode.collectAsState(initial = ThemeMode.SYSTEM)
+            val dynamicColors by preferencesRepository.dynamicColors.collectAsState(initial = true)
+            val accentColor by preferencesRepository.accentColor.collectAsState(initial = null)
+            
+            val useDarkTheme = when (themeMode) {
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+                ThemeMode.SYSTEM -> isSystemInDarkTheme()
+            }
+            
+            SoundWaveTheme(
+                darkTheme = useDarkTheme,
+                dynamicColor = dynamicColors,
+                accentColor = accentColor
+            ) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background

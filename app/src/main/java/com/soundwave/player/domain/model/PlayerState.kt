@@ -14,6 +14,7 @@ data class PlayerState(
     val shuffleEnabled: Boolean = false,
     val playbackSpeed: Float = 1f,
     val volume: Float = 1f,
+    val audioSessionId: Int = 0,
     val isBuffering: Boolean = false,
     val error: String? = null
 ) {

@@ -13,6 +13,7 @@ import com.soundwave.player.domain.repository.MusicRepository
 import com.soundwave.player.data.local.MediaStoreScanner
 import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -21,49 +22,149 @@ import kotlinx.coroutines.runBlocking
 class MusicRepositoryImpl @Inject constructor(
     private val songDao: SongDao,
     private val playlistDao: PlaylistDao,
-    private val mediaStoreScanner: MediaStoreScanner
+    private val mediaStoreScanner: MediaStoreScanner,
+    private val preferencesRepository: UserPreferencesRepository
 ) : MusicRepository {
 
     // ==================== Songs ====================
 
-    override fun getAllSongs(): Flow<List<Song>> {
-        return songDao.getAllSongs().map { entities -> entities.map { it.toDomain() } }
+override fun getAllSongs(): Flow<List<Song>> {
+    return combine(
+        songDao.getAllSongs(),
+        preferencesRepository.filterShortSongs,
+        preferencesRepository.minSongDuration,
+        preferencesRepository.excludedFolders
+    ) { entities, filter, minDuration, excludedFolders ->
+        val songs = entities.map { it.toDomain() }
+        songs.filter { song ->
+            val isExcluded = excludedFolders.any { song.folder.startsWith(it) }
+            val isShort = filter && song.duration < minDuration * 1000L
+            !isExcluded && !isShort
+        }
     }
+}
 
     override fun getSongById(id: Long): Flow<Song?> {
         return songDao.getSongByIdFlow(id).map { it?.toDomain() }
     }
 
     override fun getSongsByAlbum(albumId: Long): Flow<List<Song>> {
-        return songDao.getSongsByAlbum(albumId).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getSongsByAlbum(albumId),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getSongsByArtist(artist: String): Flow<List<Song>> {
-        return songDao.getSongsByArtist(artist).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getSongsByArtist(artist),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getSongsByFolder(folderPath: String): Flow<List<Song>> {
         return songDao.getSongsByFolder(folderPath).map { entities -> entities.map { it.toDomain() } }
     }
 
+    override fun getSongsByGenre(genre: String): Flow<List<Song>> {
+        return songDao.getSongsByGenre(genre).map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override fun getAllFolders(): Flow<List<String>> {
+        return songDao.getAllSongs().map { entities -> 
+            entities.map { it.path.substringBeforeLast("/") }.distinct().sorted()
+        }
+    }
+
     override fun searchSongs(query: String): Flow<List<Song>> {
-        return songDao.searchSongs(query).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.searchSongs(query),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getRecentlyPlayedSongs(limit: Int): Flow<List<Song>> {
-        return songDao.getRecentlyPlayedSongs(limit).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getRecentlyPlayedSongs(limit),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getRecentlyAddedSongs(limit: Int): Flow<List<Song>> {
-         return songDao.getRecentlyAddedSongs(limit).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getRecentlyAddedSongs(limit),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getMostPlayedSongs(limit: Int): Flow<List<Song>> {
-        return songDao.getMostPlayedSongs(limit).map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getMostPlayedSongs(limit),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     override fun getFavoriteSongs(): Flow<List<Song>> {
-        return songDao.getFavoriteSongs().map { entities -> entities.map { it.toDomain() } }
+        return combine(
+            songDao.getFavoriteSongs(),
+            preferencesRepository.filterShortSongs,
+            preferencesRepository.minSongDuration
+        ) { entities, filter, minDuration ->
+            val songs = entities.map { it.toDomain() }
+            if (filter) {
+                songs.filter { it.duration >= minDuration * 1000L }
+            } else {
+                songs
+            }
+        }
     }
 
     // ==================== Albums ====================

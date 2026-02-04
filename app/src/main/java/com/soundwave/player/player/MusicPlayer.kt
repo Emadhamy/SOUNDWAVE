@@ -130,7 +130,8 @@ class MusicPlayer @Inject constructor(
                         it.copy(
                             isPlaying = controller.isPlaying,
                             currentPosition = controller.currentPosition,
-                            duration = controller.duration.takeIf { d -> d > 0 } ?: 0L
+                            duration = controller.duration.takeIf { d -> d > 0 } ?: 0L,
+                            audioSessionId = getAudioSessionId()
                         )
                     }
                 }
