@@ -19,7 +19,6 @@ import com.soundwave.player.data.local.database.entities.*
         LyricsEntity::class
     ],
     version = 1,
-    version = 1,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
