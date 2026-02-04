@@ -1,0 +1,113 @@
+name: 🚀 Build Signed APK (Auto)
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  build-signed:
+    name: 📦 Build Signed APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. تحميل الكود
+      - name: 📥 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # 2. إعداد Java
+      - name: ☕ Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: gradle
+
+      # 3. صلاحيات Gradle
+      - name: 🔑 Grant execute permission
+        run: chmod +x gradlew
+
+      # 4. Cache Gradle
+      - name: 📦 Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # 5. إنشاء Keystore تلقائياً (للاختبار فقط)
+      - name: 🔐 Create Temporary Keystore
+        run: |
+          mkdir -p app/keystore
+          keytool -genkeypair -v \
+            -keystore app/keystore/temp_keystore.jks \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 365 \
+            -alias soundwave_temp \
+            -storepass temp123456 \
+            -keypass temp123456 \
+            -dname "CN=SoundWave Test, OU=Development, O=SoundWave, L=Cairo, ST=Cairo, C=EG"
+
+      # 6. بناء Debug APK موقع
+      - name: 🔨 Build Debug APK (Signed)
+        run: |
+          ./gradlew assembleDebug \
+            -PSOUNDWAVE_KEYSTORE_PATH=app/keystore/temp_keystore.jks \
+            -PSOUNDWAVE_KEYSTORE_PASSWORD=temp123456 \
+            -PSOUNDWAVE_KEY_ALIAS=soundwave_temp \
+            -PSOUNDWAVE_KEY_PASSWORD=temp123456 \
+            --stacktrace
+
+      # 7. بناء Release APK موقع
+      - name: 📦 Build Release APK (Signed)
+        run: |
+          ./gradlew assembleRelease \
+            -PSOUNDWAVE_KEYSTORE_PATH=app/keystore/temp_keystore.jks \
+            -PSOUNDWAVE_KEYSTORE_PASSWORD=temp123456 \
+            -PSOUNDWAVE_KEY_ALIAS=soundwave_temp \
+            -PSOUNDWAVE_KEY_PASSWORD=temp123456 \
+            --stacktrace
+
+      # 8. التحقق من التوقيع
+      - name: ✅ Verify APK Signature
+        run: |
+          echo "🔍 Checking Debug APK signature..."
+          $ANDROID_HOME/build-tools/*/apksigner verify --print-certs app/build/outputs/apk/debug/app-debug.apk || true
+          echo ""
+          echo "🔍 Checking Release APK signature..."
+          $ANDROID_HOME/build-tools/*/apksigner verify --print-certs app/build/outputs/apk/release/app-release.apk || true
+
+      # 9. رفع Debug APK
+      - name: 📤 Upload Debug APK (Signed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: soundwave-debug-signed
+          path: app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 14
+
+      # 10. رفع Release APK
+      - name: 📤 Upload Release APK (Signed)
+        uses: actions/upload-artifact@v4
+        with:
+          name: soundwave-release-signed
+          path: app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+      # 11. عرض معلومات APK
+      - name: 📊 APK Info
+        run: |
+          echo "📱 Debug APK Size: $(du -h app/build/outputs/apk/debug/app-debug.apk | cut -f1)"
+          echo "📱 Release APK Size: $(du -h app/build/outputs/apk/release/app-release.apk | cut -f1)"
+
+      # 12. حذف Keystore المؤقت
+      - name: 🧹 Clean up Temporary Keystore
+        if: always()
+        run: rm -rf app/keystore/temp_keystore.jks

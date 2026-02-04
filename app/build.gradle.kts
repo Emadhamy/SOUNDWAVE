@@ -27,10 +27,30 @@ android {
 
     signingConfigs {
         create("release") {
-            storeFile = file(project.findProperty("SOUNDWAVE_KEYSTORE_PATH") as String? ?: "keystore/soundwave_release.jks")
-            storePassword = project.findProperty("SOUNDWAVE_KEYSTORE_PASSWORD") as String? ?: "soundwave2026"
-            keyAlias = project.findProperty("SOUNDWAVE_KEY_ALIAS") as String? ?: "soundwave_key"
-            keyPassword = project.findProperty("SOUNDWAVE_KEY_PASSWORD") as String? ?: "soundwave2026"
+            val keystorePath = project.findProperty("SOUNDWAVE_KEYSTORE_PATH") as String? ?: "keystore/soundwave_release.jks"
+            val keystoreFile = file(keystorePath)
+            
+            // فقط قم بالتوقيع إذا كان الـ keystore موجود
+            if (keystoreFile.exists()) {
+                storeFile = keystoreFile
+                storePassword = project.findProperty("SOUNDWAVE_KEYSTORE_PASSWORD") as String? ?: "soundwave2026"
+                keyAlias = project.findProperty("SOUNDWAVE_KEY_ALIAS") as String? ?: "soundwave_key"
+                keyPassword = project.findProperty("SOUNDWAVE_KEY_PASSWORD") as String? ?: "soundwave2026"
+            }
+        }
+        
+        // إضافة signing config للـ debug أيضاً
+        getByName("debug") {
+            val keystorePath = project.findProperty("SOUNDWAVE_KEYSTORE_PATH") as String?
+            if (keystorePath != null) {
+                val keystoreFile = file(keystorePath)
+                if (keystoreFile.exists()) {
+                    storeFile = keystoreFile
+                    storePassword = project.findProperty("SOUNDWAVE_KEYSTORE_PASSWORD") as String? ?: "soundwave2026"
+                    keyAlias = project.findProperty("SOUNDWAVE_KEY_ALIAS") as String? ?: "soundwave_key"
+                    keyPassword = project.findProperty("SOUNDWAVE_KEY_PASSWORD") as String? ?: "soundwave2026"
+                }
+            }
         }
     }
 
@@ -38,7 +58,11 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
-            signingConfig = signingConfigs.getByName("release")
+            // استخدم signing config إذا كان الـ keystore موجود
+            val releaseSigningConfig = signingConfigs.getByName("release")
+            if (releaseSigningConfig.storeFile?.exists() == true) {
+                signingConfig = releaseSigningConfig
+            }
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -47,6 +71,11 @@ android {
         debug {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
+            // استخدم signing config إذا تم تمريره (للـ CI/CD)
+            val debugSigningConfig = signingConfigs.getByName("debug")
+            if (debugSigningConfig.storeFile?.exists() == true) {
+                signingConfig = debugSigningConfig
+            }
         }
     }
     
