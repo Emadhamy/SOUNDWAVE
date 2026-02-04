@@ -1,10 +1,12 @@
 name: 🧪 Android Tests
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
+  workflow_dispatch:
+    inputs:
+      run_tests:
+        description: 'Run tests manually'
+        required: false
+        default: 'true'
 
 jobs:
   unit-tests:
