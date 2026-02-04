@@ -3,16 +3,16 @@ Professional Music Player for Android
 
 # 🎵 SoundWave
 
-![Build Status](https://github.com/YOUR_USERNAME/SoundWave/workflows/🔨%20Android%20Build/badge.svg)
-![Release](https://img.shields.io/github/v/release/YOUR_USERNAME/SoundWave?include_prereleases)
-![License](https://img.shields.io/github/license/YOUR_USERNAME/SoundWave)
+![Build Status](https://github.com/Emadhamy/SOUNDWAVE/workflows/🔨%20Android%20Build/badge.svg)
+![Release](https://img.shields.io/github/v/release/Emadhamy/SOUNDWAVE?include_prereleases)
+![License](https://img.shields.io/github/license/Emadhamy/SOUNDWAVE)
 ![API](https://img.shields.io/badge/API-26%2B-brightgreen)
 
 > مشغل موسيقى احترافي للأندرويد
 
 ## 📥 التحميل
 
-[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/YOUR_USERNAME/SoundWave/releases/latest)
+[![Download APK](https://img.shields.io/badge/Download-APK-green?style=for-the-badge&logo=android)](https://github.com/Emadhamy/SOUNDWAVE/releases/latest)
 
 ## ✨ المميزات
 
@@ -30,11 +30,11 @@ Professional Music Player for Android
 
 ## 🛠️ البناء
 
-\`\`\`bash
-git clone https://github.com/YOUR_USERNAME/SoundWave.git
-cd SoundWave
+```bash
+git clone https://github.com/Emadhamy/SOUNDWAVE.git
+cd SOUNDWAVE
 ./gradlew assembleDebug
-\`\`\`
+```
 
 ## 📄 الرخصة
 

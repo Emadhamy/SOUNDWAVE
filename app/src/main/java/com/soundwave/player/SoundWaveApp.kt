@@ -30,7 +30,6 @@ class SoundWaveApp : Application(), ImageLoaderFactory {
             }
             .diskCachePolicy(CachePolicy.ENABLED)
             .memoryCachePolicy(CachePolicy.ENABLED)
-            .crossfade(true)
             .crossfade(200)
             .build()
     }

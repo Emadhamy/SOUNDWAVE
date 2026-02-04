@@ -25,10 +25,20 @@ android {
         }
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(project.findProperty("SOUNDWAVE_KEYSTORE_PATH") as String? ?: "keystore/soundwave_release.jks")
+            storePassword = project.findProperty("SOUNDWAVE_KEYSTORE_PASSWORD") as String? ?: "soundwave2026"
+            keyAlias = project.findProperty("SOUNDWAVE_KEY_ALIAS") as String? ?: "soundwave_key"
+            keyPassword = project.findProperty("SOUNDWAVE_KEY_PASSWORD") as String? ?: "soundwave2026"
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
