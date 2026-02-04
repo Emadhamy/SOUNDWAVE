@@ -69,7 +69,7 @@ class EqualizerManager @Inject constructor() {
             // Bass Boost
             bassBoost = BassBoost(0, sessionId).apply {
                 enabled = _state.value.isEnabled && _state.value.bassBoost > 0
-                if (strengthSupported() && _state.value.bassBoost > 0) {
+                if (strengthSupported && _state.value.bassBoost > 0) {
                     setStrength(_state.value.bassBoost.toShort())
                 }
             }
@@ -77,7 +77,7 @@ class EqualizerManager @Inject constructor() {
             // Virtualizer
             virtualizer = Virtualizer(0, sessionId).apply {
                 enabled = _state.value.isEnabled && _state.value.virtualizerStrength > 0
-                if (strengthSupported() && _state.value.virtualizerStrength > 0) {
+                if (strengthSupported && _state.value.virtualizerStrength > 0) {
                     setStrength(_state.value.virtualizerStrength.toShort())
                 }
             }
@@ -178,7 +178,7 @@ class EqualizerManager @Inject constructor() {
         val clampedStrength = strength.coerceIn(0, 1000)
         bassBoost?.apply {
             enabled = _state.value.isEnabled && clampedStrength > 0
-            if (strengthSupported() && clampedStrength > 0) {
+            if (strengthSupported && clampedStrength > 0) {
                 setStrength(clampedStrength.toShort())
             }
         }
@@ -189,7 +189,7 @@ class EqualizerManager @Inject constructor() {
         val clampedStrength = strength.coerceIn(0, 1000)
         virtualizer?.apply {
             enabled = _state.value.isEnabled && clampedStrength > 0
-            if (strengthSupported() && clampedStrength > 0) {
+            if (strengthSupported && clampedStrength > 0) {
                 setStrength(clampedStrength.toShort())
             }
         }
@@ -297,7 +297,7 @@ class EqualizerManager @Inject constructor() {
     
     fun isSupported(): Boolean = isInitialized
     
-    fun isBassBoostSupported(): Boolean = bassBoost?.strengthSupported() == true
+    fun isBassBoostSupported(): Boolean = bassBoost?.strengthSupported == true
     
-    fun isVirtualizerSupported(): Boolean = virtualizer?.strengthSupported() == true
+    fun isVirtualizerSupported(): Boolean = virtualizer?.strengthSupported == true
 }

@@ -11,10 +11,10 @@ import com.soundwave.player.R
 // يمكنك استخدام خط Cairo أو أي خط عربي
 // تحميل من: https://fonts.google.com/specimen/Cairo
 val CairoFontFamily = FontFamily(
-    Font(R.font.cairo_regular, FontWeight.Normal),
-    Font(R.font.cairo_medium, FontWeight.Medium),
-    Font(R.font.cairo_semibold, FontWeight.SemiBold),
-    Font(R.font.cairo_bold, FontWeight.Bold)
+    Font(resId = R.font.cairo_regular, weight = FontWeight.Normal),
+    Font(resId = R.font.cairo_medium, weight = FontWeight.Medium),
+    Font(resId = R.font.cairo_semibold, weight = FontWeight.SemiBold),
+    Font(resId = R.font.cairo_bold, weight = FontWeight.Bold)
 )
 
 // أو استخدام الخط الافتراضي

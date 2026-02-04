@@ -84,7 +84,7 @@ fun SongItem(
                 }
                 
                 // Playing Indicator Overlay
-                AnimatedVisibility(
+                androidx.compose.animation.AnimatedVisibility(
                     visible = isPlaying,
                     enter = fadeIn(),
                     exit = fadeOut()
