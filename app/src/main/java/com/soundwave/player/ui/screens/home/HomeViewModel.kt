@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+// Helper class for combining 4 flows
+data class Quadruple<A, B, C, D>(val first: A, val second: B, val third: C, val fourth: D)
+
 data class HomeUiState(
     val isLoading: Boolean = true,
     val greeting: String = "",
@@ -56,25 +59,35 @@ class HomeViewModel @Inject constructor(
             
             try {
                 // تحميل البيانات بالتوازي
-                combine(
+                // تحميل البيانات (تقسيم الـ combine لتجاوز حد الـ 5 وسائط)
+                val songsFlow = combine(
                     musicRepository.getRecentlyPlayedSongs(10),
                     musicRepository.getRecentlyAddedSongs(10),
                     musicRepository.getMostPlayedSongs(10),
-                    musicRepository.getFavoriteSongs(),
+                    musicRepository.getFavoriteSongs()
+                ) { recent, added, mostPlayed, favorites ->
+                    Quadruple(recent, added, mostPlayed, favorites)
+                }
+                
+                val libraryFlow = combine(
                     musicRepository.getAllAlbums(),
                     musicRepository.getAllArtists(),
                     musicRepository.getAllPlaylists()
-                ) { recent, added, mostPlayed, favorites, albums, artists, playlists ->
+                ) { albums, artists, playlists ->
+                    Triple(albums, artists, playlists)
+                }
+                
+                combine(songsFlow, libraryFlow) { songsData, libraryData ->
                     HomeUiState(
                         isLoading = false,
                         greeting = _uiState.value.greeting,
-                        recentlyPlayed = recent,
-                        recentlyAdded = added,
-                        mostPlayed = mostPlayed,
-                        favorites = favorites.take(10),
-                        albums = albums.take(10),
-                        artists = artists.take(10),
-                        playlists = playlists.filter { !it.isSmartPlaylist }
+                        recentlyPlayed = songsData.first,
+                        recentlyAdded = songsData.second,
+                        mostPlayed = songsData.third,
+                        favorites = songsData.fourth.take(10),
+                        albums = libraryData.first.take(10),
+                        artists = libraryData.second.take(10),
+                        playlists = libraryData.third.filter { !it.isSmartPlaylist }
                     )
                 }.collect { state ->
                     _uiState.value = state

@@ -10,14 +10,15 @@ import com.soundwave.player.R
 
 // يمكنك استخدام خط Cairo أو أي خط عربي
 // تحميل من: https://fonts.google.com/specimen/Cairo
-val CairoFontFamily = FontFamily(
-    Font(resId = R.font.cairo_regular, weight = FontWeight.Normal),
-    Font(resId = R.font.cairo_medium, weight = FontWeight.Medium),
-    Font(resId = R.font.cairo_semibold, weight = FontWeight.SemiBold),
-    Font(resId = R.font.cairo_bold, weight = FontWeight.Bold)
-)
+// val CairoFontFamily = FontFamily(
+//     Font(resId = R.font.cairo_regular, weight = FontWeight.Normal),
+//     Font(resId = R.font.cairo_medium, weight = FontWeight.Medium),
+//     Font(resId = R.font.cairo_semibold, weight = FontWeight.SemiBold),
+//     Font(resId = R.font.cairo_bold, weight = FontWeight.Bold)
+// )
 
-// أو استخدام الخط الافتراضي
+// استخدام الخط الافتراضي مؤقتاً لعدم وجود ملفات الخطوط
+val CairoFontFamily = FontFamily.Default
 val DefaultFontFamily = FontFamily.Default
 
 val Typography = Typography(
