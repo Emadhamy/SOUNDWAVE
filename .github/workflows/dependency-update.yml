@@ -28,7 +28,7 @@ jobs:
         run: ./gradlew dependencyUpdates -Drevision=release --stacktrace
 
       - name: 📤 Upload Report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: dependency-updates
           path: build/dependencyUpdates/
